@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <array name="preloaded_fonts" translatable="false">
+        <item>@font/baloo</item>
+        <item>@font/koho</item>
+        <item>@font/koho_bold</item>
+        <item>@font/koho_extralight</item>
+        <item>@font/koho_semibold</item>
+    </array>
+</resources>

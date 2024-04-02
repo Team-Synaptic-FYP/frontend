@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+<!--    Blue band -->
+    <color name="light_blue">#5EA8FD</color>
+    <color name="blue">#488BFF</color>
+    <color name="transparent_blue">#657BCDFC</color>
+
+<!--    Common -->
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+    <color name="grey">#615959</color>
+    <color name="grey_low_transparent">#70615959</color>
+    <color name="transparent">#00FFFFFF</color>
+    <color name="blur_white">#A4F8ECEC</color>
+
+    <color name="green">#00FF00</color>
+    <color name="yellow">#FFFF00</color>
+    <color name="red">#FF0000</color>
+
+</resources>

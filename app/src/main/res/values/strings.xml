@@ -1,0 +1,16 @@
+<resources>
+    <string name="app_name">LungSoundClassification</string>
+    <string name="dioglung_logo">PulmoSync</string>
+    <string name="upload_audio">Upload Audio</string>
+    <string name="diagnosis">DIAGNOSIS</string>
+    <string name="show_more">SHOW MORE</string>
+    <string name="show_less">SHOW LESS</string>
+    <string name="confident_level">12.05%</string>
+    <string name="disease">Disease</string>
+    <string name="severity_level">SEVERITY LEVEL</string>
+    <string name="impression">impression</string>
+    <string name="healthy">Healthy</string>
+    <string name="disclaimer_health_1">The uploaded lung sound audio clip is categorized as a healthy sound profile in %s%%, based on our evaluation model.\n This does not completely rule out the need for a medical investigation, if any.</string>
+    <string name="healthy_disclaimer_2">Even though it is identified as a healthy lung sound, if you still feel discomfort, please consult your medical practitioner for further support and diagnosis. Early diagnosis of illness will make it easier to treat and prevent adverse health complications.\n Our effort in this solution is to ensure that patients get early attention from medical practitioners; so that any illness can be treated promptly through standard medical procedures</string>
+    <string name="final_disclaimer">This sound categorization is for indication purposes only, and should not be taken as a replacement or alternative for professional medical advice.</string>
+</resources>

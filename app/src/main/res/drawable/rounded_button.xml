@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- res/drawable/rounded_button.xml -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape>
+            <corners android:radius="10dp" /> <!-- Adjust the corner radius as needed -->
+            <solid android:color="?attr/colorPrimarySurface" /> <!-- Button background color -->
+            <stroke
+                android:color="?attr/colorPrimary"
+                android:width="1dp" />
+        </shape>
+    </item>
+</selector>
