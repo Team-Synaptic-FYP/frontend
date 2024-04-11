@@ -56,6 +56,7 @@ public class DiagnosisActivity extends AppCompatActivity {
     private CardView healthyCard;
     private CardView diagnosisCard;
     private CardView radarChartCard;
+    private CardView analysisCard;
     private TextView healthyDisclaimer;
     private View emptySpaceView;
 
@@ -76,106 +77,12 @@ public class DiagnosisActivity extends AppCompatActivity {
         healthyCard = findViewById(R.id.healthy_card);
         diagnosisCard = findViewById(R.id.diagnosis_card);
         radarChartCard = findViewById(R.id.radar_chart_card);
+        analysisCard = findViewById(R.id.analysis_card);
 
         healthyDisclaimer = findViewById(R.id.healthy_description);
 
-        // Initialize UI components for audio player
-        playPauseButton = findViewById(R.id.playPauseButton);
-        seekBar = findViewById(R.id.seekBar);
-
-        // Initialize the audio player
-        audioPlayer = new AudioPlayer(this, byteArrayInputStream);
-        seekBar.setMax(audioPlayer.getDuration());
-
-        // Initialize a Handler
-        handler = new Handler();
-
-        // Define the runnable to update the seek bar
-        updateSeekBarRunnable = new Runnable() {
-            @Override
-            public void run() {
-                // Update the seek bar with the current audio position
-                if (isPlaying) {
-                    int currentPosition = audioPlayer.getCurrentPosition();
-                    seekBar.setProgress(currentPosition);
-
-                    // Schedule the runnable to run again after a delay
-                    handler.postDelayed(this, 10); // Update every 10 ms
-                }
-            }
-        };
-
-        // Play/Pause button functionality
-        playPauseButton.setOnClickListener(view -> {
-                    if (isPlaying) {
-                        // If audio is playing, pause it
-                        audioPlayer.pause();
-                        isPlaying = false;
-
-                        // Update the button to "Play"
-                        playPauseButton.setBackgroundResource(R.drawable.play_btn);
-
-                        // Stop updating the seek bar
-                        handler.removeCallbacks(updateSeekBarRunnable);
-                    } else {
-                        // If audio is paused, play it
-                        audioPlayer.play();
-                        isPlaying = true;
-
-                        // Update the button text to "Pause"
-                        playPauseButton.setBackgroundResource(R.drawable.pause_btn);
-
-                        // Start updating the seek bar
-                        handler.post(updateSeekBarRunnable);
-                    }
-        });
-
-        seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-            @Override
-            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                if (fromUser) {
-                    audioPlayer.seekTo(progress);
-                }
-            }
-
-            @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {
-                // Pause audio while seeking
-                audioPlayer.pause();
-                isPlaying = false;
-                playPauseButton.setBackgroundResource(R.drawable.play_btn);
-                handler.removeCallbacks(updateSeekBarRunnable);
-            }
-
-            @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {
-                // Resume audio after seeking
-                audioPlayer.play();
-                isPlaying = true;
-                playPauseButton.setBackgroundResource(R.drawable.pause_btn);
-                handler.post(updateSeekBarRunnable);
-            }
-
-        });
-
-        audioPlayer.getMediaPlayer().setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
-            @Override
-            public void onCompletion(MediaPlayer mediaPlayer) {
-                // When audio is completed, set the button text to "Play"
-                isPlaying = false;
-                playPauseButton.setBackgroundResource(R.drawable.play_btn);
-
-                // Stop updating the seek bar
-                handler.removeCallbacks(updateSeekBarRunnable);
-            }
-        } );
-
-
-
-
-
         assert responseObject != null;
-        if (responseObject.getDiseases().size() == 0){ // True here
+        if (responseObject.getDiseases().size() == 0 || true){ // True here
 
             String updatedPercentage = "85.12";  // Replace with your updated percentage value
             String updatedText = getString(R.string.disclaimer_health_1, updatedPercentage);
@@ -184,12 +91,16 @@ public class DiagnosisActivity extends AppCompatActivity {
             healthyCard.setVisibility(View.VISIBLE);
             diagnosisCard.setVisibility(View.GONE);
             radarChartCard.setVisibility(View.GONE);
+            analysisCard.setVisibility(View.GONE);
 
         }
         else {
             healthyCard.setVisibility(View.GONE);
             diagnosisCard.setVisibility(View.VISIBLE);
             radarChartCard.setVisibility(View.VISIBLE);
+            analysisCard.setVisibility(View.VISIBLE);
+
+            // Radar chart configuration -------------------------------------
 
             radarChart = findViewById(R.id.radarChart);
 
@@ -231,6 +142,8 @@ public class DiagnosisActivity extends AppCompatActivity {
 
 
 
+            // Recycler View configuration -----------------------------------
+
             RecyclerView recyclerView = findViewById(R.id.recyclerView);
             DefaultItemAnimator animator = new DefaultItemAnimator();
             animator.setAddDuration(200);
@@ -261,6 +174,100 @@ public class DiagnosisActivity extends AppCompatActivity {
                     }
                 }
             });
+
+
+            // XAI Media player configuration -----------------------------------
+
+            // Initialize UI components for audio player
+            playPauseButton = findViewById(R.id.playPauseButton);
+            seekBar = findViewById(R.id.seekBar);
+
+            // Initialize the audio player
+            audioPlayer = new AudioPlayer(this, byteArrayInputStream);
+            seekBar.setMax(audioPlayer.getDuration());
+
+            // Initialize a Handler
+            handler = new Handler();
+
+            // Define the runnable to update the seek bar
+            updateSeekBarRunnable = new Runnable() {
+                @Override
+                public void run() {
+                    // Update the seek bar with the current audio position
+                    if (isPlaying) {
+                        int currentPosition = audioPlayer.getCurrentPosition();
+                        seekBar.setProgress(currentPosition);
+
+                        // Schedule the runnable to run again after a delay
+                        handler.postDelayed(this, 10); // Update every 10 ms
+                    }
+                }
+            };
+
+            // Play/Pause button functionality
+            playPauseButton.setOnClickListener(view -> {
+                if (isPlaying) {
+                    // If audio is playing, pause it
+                    audioPlayer.pause();
+                    isPlaying = false;
+
+                    // Update the button to "Play"
+                    playPauseButton.setBackgroundResource(R.drawable.play_btn);
+
+                    // Stop updating the seek bar
+                    handler.removeCallbacks(updateSeekBarRunnable);
+                } else {
+                    // If audio is paused, play it
+                    audioPlayer.play();
+                    isPlaying = true;
+
+                    // Update the button text to "Pause"
+                    playPauseButton.setBackgroundResource(R.drawable.pause_btn);
+
+                    // Start updating the seek bar
+                    handler.post(updateSeekBarRunnable);
+                }
+            });
+
+            seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+                @Override
+                public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                    if (fromUser) {
+                        audioPlayer.seekTo(progress);
+                    }
+                }
+
+                @Override
+                public void onStartTrackingTouch(SeekBar seekBar) {
+                    // Pause audio while seeking
+                    audioPlayer.pause();
+                    isPlaying = false;
+                    playPauseButton.setBackgroundResource(R.drawable.play_btn);
+                    handler.removeCallbacks(updateSeekBarRunnable);
+                }
+
+                @Override
+                public void onStopTrackingTouch(SeekBar seekBar) {
+                    // Resume audio after seeking
+                    audioPlayer.play();
+                    isPlaying = true;
+                    playPauseButton.setBackgroundResource(R.drawable.pause_btn);
+                    handler.post(updateSeekBarRunnable);
+                }
+
+            });
+
+            audioPlayer.getMediaPlayer().setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+                @Override
+                public void onCompletion(MediaPlayer mediaPlayer) {
+                    // When audio is completed, set the button text to "Play"
+                    isPlaying = false;
+                    playPauseButton.setBackgroundResource(R.drawable.play_btn);
+
+                    // Stop updating the seek bar
+                    handler.removeCallbacks(updateSeekBarRunnable);
+                }
+            } );
 
         }
 
@@ -301,7 +308,10 @@ public class DiagnosisActivity extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
         // Release resources when the activity is destroyed
-        handler.removeCallbacks(updateSeekBarRunnable);
+        if(handler != null){
+            handler.removeCallbacks(updateSeekBarRunnable);
+        }
+
         if (audioPlayer != null) {
             audioPlayer.release();
         }
