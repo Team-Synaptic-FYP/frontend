@@ -120,6 +120,8 @@ public class MainActivity extends AppCompatActivity {
 
             showProgressBar();
 
+
+            byte[] finalWavData = wavData;
             // async call
             call.enqueue(new Callback<ResponseObject>() {
                 @Override
@@ -132,10 +134,9 @@ public class MainActivity extends AppCompatActivity {
                         ResponseObject responseObject = response.body();
 
                         Intent intent = new Intent(MainActivity.this, DiagnosisActivity.class);
-                        intent.putExtra("response_object", responseObject);
 
-                        // TODO: Remove this
-                        intent.putExtra("is_healthy", fileName);
+                        intent.putExtra("response_object", responseObject);
+                        intent.putExtra("wav_data", finalWavData);
 
                         startActivity(intent);
 

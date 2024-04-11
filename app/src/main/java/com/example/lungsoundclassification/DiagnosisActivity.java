@@ -11,8 +11,10 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
+import android.widget.SeekBar;
 import android.widget.TextView;
 
 import androidx.annotation.Nullable;
@@ -30,6 +32,7 @@ import com.github.mikephil.charting.data.RadarDataSet;
 import com.github.mikephil.charting.data.RadarEntry;
 import com.github.mikephil.charting.formatter.IndexAxisValueFormatter;
 
+import java.io.ByteArrayInputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -38,8 +41,15 @@ public class DiagnosisActivity extends AppCompatActivity {
     private List<DiagnosisModel> diagnosisList;
     private List<DiagnosisModel> viewableDiagnosisList;
     private DiagnosisAdapter adapter;
-
     private RadarChart radarChart;
+
+    // Audio Player related Variables
+    private AudioPlayer audioPlayer;
+    private Button playButton;
+    private Button pauseButton;
+    private SeekBar seekBar;
+    private boolean isPlaying = false;
+
 
     private CardView healthyCard;
     private CardView diagnosisCard;
@@ -55,20 +65,65 @@ public class DiagnosisActivity extends AppCompatActivity {
 
         // getting extra
         ResponseObject responseObject = (ResponseObject) getIntent().getSerializableExtra("response_object");
+        byte[] wavData = (byte[]) getIntent().getSerializableExtra("wav_data");
 
-        // TODO: Remove this
-        String isHealthy = (String) getIntent().getSerializableExtra("is_healthy");
+        ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(wavData);
 
+
+        // Initialize common UI components
         healthyCard = findViewById(R.id.healthy_card);
         diagnosisCard = findViewById(R.id.diagnosis_card);
         radarChartCard = findViewById(R.id.radar_chart_card);
 
         healthyDisclaimer = findViewById(R.id.healthy_description);
 
+        // Initialize UI components for audio player
+        playButton = findViewById(R.id.playButton);
+        pauseButton = findViewById(R.id.pauseButton);
+        seekBar = findViewById(R.id.seekBar);
+
+        // Initialize the audio player
+        audioPlayer = new AudioPlayer(this, byteArrayInputStream);
+        seekBar.setMax(audioPlayer.getDuration());
+
+        playButton.setOnClickListener(view -> {
+            audioPlayer.play();
+            isPlaying = true;
+            updateSeekBar();
+        });
+
+        pauseButton.setOnClickListener(view -> {
+            audioPlayer.pause();
+            isPlaying = false;
+        });
+
+        seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                if (fromUser) {
+                    audioPlayer.seekTo(progress);
+                }
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+                // Pause audio while seeking
+                audioPlayer.pause();
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+                // Resume playing audio after seeking
+                if (isPlaying) {
+                    audioPlayer.play();
+                }
+            }
+        });
+
 
 
         assert responseObject != null;
-        if (responseObject.getDiseases().size() == 0 || isHealthy.equals("audio:1000233953")){ // True here
+        if (responseObject.getDiseases().size() == 0){ // True here
 
             String updatedPercentage = "85.12";  // Replace with your updated percentage value
             String updatedText = getString(R.string.disclaimer_health_1, updatedPercentage);
@@ -187,6 +242,33 @@ public class DiagnosisActivity extends AppCompatActivity {
         for(int i = diagnosisList.size() - 1; i >= 1; i--){
             viewableDiagnosisList.remove(i);
             adapter.notifyItemRemoved(i);
+        }
+    }
+
+    private void updateSeekBar() {
+        // Thread to update the seek bar according to the current position of the audio
+        new Thread(() -> {
+            while (isPlaying) {
+                runOnUiThread(() -> {
+                    int currentPosition = audioPlayer.getCurrentPosition();
+                    seekBar.setProgress(currentPosition);
+                });
+
+                try {
+                    Thread.sleep(1000); // Update every second
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        // Release resources when the activity is destroyed
+        if (audioPlayer != null) {
+            audioPlayer.release();
         }
     }
 
