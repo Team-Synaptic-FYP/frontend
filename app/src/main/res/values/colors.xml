@@ -4,6 +4,7 @@
 <!--    Blue band -->
     <color name="light_blue">#5EA8FD</color>
     <color name="blue">#488BFF</color>
+    <color name="dark_blue">#004FAC</color>
     <color name="transparent_blue">#657BCDFC</color>
 
 <!--    Common -->

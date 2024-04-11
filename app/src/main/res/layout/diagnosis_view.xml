@@ -350,26 +350,46 @@
 
                         android:background="@color/grey_low_transparent" />
 
-                    <!-- Play/pause Button -->
-                    <Button
-                        android:id="@+id/playPauseButton"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_alignParentBottom="true"
-                        android:layout_margin="16dp"
-                        android:text="Play" />
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+
+                    android:orientation="horizontal"
+                    >
+
+                        <!-- Play/pause Button -->
+                        <Button
+                            android:id="@+id/playPauseButton"
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            android:layout_alignParentBottom="true"
+
+                            android:layout_marginStart="10dp"
+                            android:layout_margin="12dp"
+
+                            android:background="@drawable/play_btn" />
 
 
-                    <!-- Seek Bar -->
-                    <SeekBar
-                        android:id="@+id/seekBar"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_above="@id/playPauseButton"
-                        android:layout_margin="16dp" />
+                        <!-- Seek Bar -->
+                        <SeekBar
+                            android:id="@+id/seekBar"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_above="@id/playPauseButton"
+                            android:layout_marginTop="22dp"
+
+                            android:progressTint="@color/dark_blue"
+                            android:secondaryProgressTint="@color/light_blue"
+                            android:progressBackgroundTint="@color/blue"
+                            android:progressBackgroundTintMode="screen"
+
+                            android:thumbTint="@color/blue"
 
 
+                            />
 
+
+                </LinearLayout>
 
                 </LinearLayout>
 

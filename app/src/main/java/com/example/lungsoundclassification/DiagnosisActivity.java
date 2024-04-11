@@ -112,8 +112,8 @@ public class DiagnosisActivity extends AppCompatActivity {
                         audioPlayer.pause();
                         isPlaying = false;
 
-                        // Update the button text to "Play"
-                        playPauseButton.setText("Play");
+                        // Update the button to "Play"
+                        playPauseButton.setBackgroundResource(R.drawable.play_btn);
 
                         // Stop updating the seek bar
                         handler.removeCallbacks(updateSeekBarRunnable);
@@ -123,7 +123,7 @@ public class DiagnosisActivity extends AppCompatActivity {
                         isPlaying = true;
 
                         // Update the button text to "Pause"
-                        playPauseButton.setText("Pause");
+                        playPauseButton.setBackgroundResource(R.drawable.pause_btn);
 
                         // Start updating the seek bar
                         handler.post(updateSeekBarRunnable);
@@ -143,7 +143,7 @@ public class DiagnosisActivity extends AppCompatActivity {
                 // Pause audio while seeking
                 audioPlayer.pause();
                 isPlaying = false;
-                playPauseButton.setText("Play");
+                playPauseButton.setBackgroundResource(R.drawable.play_btn);
                 handler.removeCallbacks(updateSeekBarRunnable);
             }
 
@@ -152,7 +152,7 @@ public class DiagnosisActivity extends AppCompatActivity {
                 // Resume audio after seeking
                 audioPlayer.play();
                 isPlaying = true;
-                playPauseButton.setText("Pause");
+                playPauseButton.setBackgroundResource(R.drawable.pause_btn);
                 handler.post(updateSeekBarRunnable);
             }
 
@@ -163,7 +163,7 @@ public class DiagnosisActivity extends AppCompatActivity {
             public void onCompletion(MediaPlayer mediaPlayer) {
                 // When audio is completed, set the button text to "Play"
                 isPlaying = false;
-                playPauseButton.setText("Play");
+                playPauseButton.setBackgroundResource(R.drawable.play_btn);
 
                 // Stop updating the seek bar
                 handler.removeCallbacks(updateSeekBarRunnable);
