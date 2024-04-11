@@ -77,4 +77,8 @@ public class AudioPlayer {
     public int getDuration() {
         return mediaPlayer.getDuration();
     }
+
+    public MediaPlayer getMediaPlayer() {
+        return mediaPlayer;
+    }
 }

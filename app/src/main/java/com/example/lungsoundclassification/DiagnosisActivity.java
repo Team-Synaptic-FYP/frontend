@@ -7,6 +7,7 @@ import static java.text.DateFormat.MEDIUM;
 
 import android.content.res.ColorStateList;
 import android.graphics.Color;
+import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -45,8 +46,7 @@ public class DiagnosisActivity extends AppCompatActivity {
 
     // Audio Player related Variables
     private AudioPlayer audioPlayer;
-    private Button playButton;
-    private Button pauseButton;
+    private Button playPauseButton;
     private SeekBar seekBar;
     private boolean isPlaying = false;
     private Handler handler;
@@ -80,8 +80,7 @@ public class DiagnosisActivity extends AppCompatActivity {
         healthyDisclaimer = findViewById(R.id.healthy_description);
 
         // Initialize UI components for audio player
-        playButton = findViewById(R.id.playButton);
-        pauseButton = findViewById(R.id.pauseButton);
+        playPauseButton = findViewById(R.id.playPauseButton);
         seekBar = findViewById(R.id.seekBar);
 
         // Initialize the audio player
@@ -101,25 +100,34 @@ public class DiagnosisActivity extends AppCompatActivity {
                     seekBar.setProgress(currentPosition);
 
                     // Schedule the runnable to run again after a delay
-                    handler.postDelayed(this, 10); // Update every 500 ms
+                    handler.postDelayed(this, 10); // Update every 10 ms
                 }
             }
         };
 
-        playButton.setOnClickListener(view -> {
-            audioPlayer.play();
-            isPlaying = true;
+        // Play/Pause button functionality
+        playPauseButton.setOnClickListener(view -> {
+                    if (isPlaying) {
+                        // If audio is playing, pause it
+                        audioPlayer.pause();
+                        isPlaying = false;
 
-            // Start updating the seek bar
-            handler.post(updateSeekBarRunnable);
-        });
+                        // Update the button text to "Play"
+                        playPauseButton.setText("Play");
 
-        pauseButton.setOnClickListener(view -> {
-            audioPlayer.pause();
-            isPlaying = false;
+                        // Stop updating the seek bar
+                        handler.removeCallbacks(updateSeekBarRunnable);
+                    } else {
+                        // If audio is paused, play it
+                        audioPlayer.play();
+                        isPlaying = true;
 
-            // Stop updating the seek bar
-            handler.removeCallbacks(updateSeekBarRunnable);
+                        // Update the button text to "Pause"
+                        playPauseButton.setText("Pause");
+
+                        // Start updating the seek bar
+                        handler.post(updateSeekBarRunnable);
+                    }
         });
 
         seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
@@ -134,16 +142,35 @@ public class DiagnosisActivity extends AppCompatActivity {
             public void onStartTrackingTouch(SeekBar seekBar) {
                 // Pause audio while seeking
                 audioPlayer.pause();
+                isPlaying = false;
+                playPauseButton.setText("Play");
+                handler.removeCallbacks(updateSeekBarRunnable);
             }
 
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
-                // Resume playing audio after seeking
-                if (isPlaying) {
-                    audioPlayer.play();
-                }
+                // Resume audio after seeking
+                audioPlayer.play();
+                isPlaying = true;
+                playPauseButton.setText("Pause");
+                handler.post(updateSeekBarRunnable);
             }
+
         });
+
+        audioPlayer.getMediaPlayer().setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+            @Override
+            public void onCompletion(MediaPlayer mediaPlayer) {
+                // When audio is completed, set the button text to "Play"
+                isPlaying = false;
+                playPauseButton.setText("Play");
+
+                // Stop updating the seek bar
+                handler.removeCallbacks(updateSeekBarRunnable);
+            }
+        } );
+
+
 
 
 

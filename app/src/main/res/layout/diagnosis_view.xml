@@ -350,31 +350,22 @@
 
                         android:background="@color/grey_low_transparent" />
 
-                    <!-- Play Button -->
+                    <!-- Play/pause Button -->
                     <Button
-                        android:id="@+id/playButton"
+                        android:id="@+id/playPauseButton"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_alignParentBottom="true"
                         android:layout_margin="16dp"
                         android:text="Play" />
 
-                    <!-- Pause Button -->
-                    <Button
-                        android:id="@+id/pauseButton"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_toRightOf="@id/playButton"
-                        android:layout_alignParentBottom="true"
-                        android:layout_margin="16dp"
-                        android:text="Pause" />
 
                     <!-- Seek Bar -->
                     <SeekBar
                         android:id="@+id/seekBar"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_above="@id/playButton"
+                        android:layout_above="@id/playPauseButton"
                         android:layout_margin="16dp" />
 
 
