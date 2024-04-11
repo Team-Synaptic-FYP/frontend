@@ -49,6 +49,8 @@ public class DiagnosisActivity extends AppCompatActivity {
     private Button pauseButton;
     private SeekBar seekBar;
     private boolean isPlaying = false;
+    private Handler handler;
+    private Runnable updateSeekBarRunnable;
 
 
     private CardView healthyCard;
@@ -86,15 +88,38 @@ public class DiagnosisActivity extends AppCompatActivity {
         audioPlayer = new AudioPlayer(this, byteArrayInputStream);
         seekBar.setMax(audioPlayer.getDuration());
 
+        // Initialize a Handler
+        handler = new Handler();
+
+        // Define the runnable to update the seek bar
+        updateSeekBarRunnable = new Runnable() {
+            @Override
+            public void run() {
+                // Update the seek bar with the current audio position
+                if (isPlaying) {
+                    int currentPosition = audioPlayer.getCurrentPosition();
+                    seekBar.setProgress(currentPosition);
+
+                    // Schedule the runnable to run again after a delay
+                    handler.postDelayed(this, 10); // Update every 500 ms
+                }
+            }
+        };
+
         playButton.setOnClickListener(view -> {
             audioPlayer.play();
             isPlaying = true;
-            updateSeekBar();
+
+            // Start updating the seek bar
+            handler.post(updateSeekBarRunnable);
         });
 
         pauseButton.setOnClickListener(view -> {
             audioPlayer.pause();
             isPlaying = false;
+
+            // Stop updating the seek bar
+            handler.removeCallbacks(updateSeekBarRunnable);
         });
 
         seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
@@ -245,28 +270,11 @@ public class DiagnosisActivity extends AppCompatActivity {
         }
     }
 
-    private void updateSeekBar() {
-        // Thread to update the seek bar according to the current position of the audio
-        new Thread(() -> {
-            while (isPlaying) {
-                runOnUiThread(() -> {
-                    int currentPosition = audioPlayer.getCurrentPosition();
-                    seekBar.setProgress(currentPosition);
-                });
-
-                try {
-                    Thread.sleep(1000); // Update every second
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
-        }).start();
-    }
-
     @Override
     protected void onDestroy() {
         super.onDestroy();
         // Release resources when the activity is destroyed
+        handler.removeCallbacks(updateSeekBarRunnable);
         if (audioPlayer != null) {
             audioPlayer.release();
         }
