@@ -155,7 +155,7 @@ public class DiagnosisActivity extends AppCompatActivity {
             recyclerView.setItemAnimator(animator);
 
             List<DiagnosisModel> diagnosisList = getDiagnosisData(responseObject.getDiseases(), responseObject.getProbabilities()); // Replace with your data source
-            adapter = new DiagnosisAdapter(diagnosisList);
+            adapter = new DiagnosisAdapter(diagnosisList, this);
             recyclerView.setAdapter(adapter);
 
             TextView expand_btn = findViewById(R.id.diagnosis_seemore);

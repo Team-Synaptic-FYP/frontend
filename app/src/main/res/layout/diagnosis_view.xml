@@ -9,9 +9,10 @@
     android:background="?attr/colorOnSecondary">
 
     <ScrollView
+        android:id="@+id/scrollView2"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        >
+        android:layout_height="match_parent">
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -55,72 +56,69 @@
 
                 android:layout_margin="20dp"
                 app:cardCornerRadius="10dp"
-                app:cardElevation="0dp"
-                >
+                app:cardElevation="0dp">
 
                 <com.github.mikephil.charting.charts.RadarChart
                     android:id="@+id/radarChart"
                     android:layout_width="match_parent"
                     android:layout_height="300dp"
-                    android:layout_marginBottom="-60dp"
                     android:layout_marginTop="10dp"
-                    />
+                    android:layout_marginBottom="-60dp" />
 
             </androidx.cardview.widget.CardView>
 
             <androidx.cardview.widget.CardView
 
-                    android:id="@+id/healthy_card"
+                android:id="@+id/healthy_card"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+
+                android:layout_margin="20dp"
+
+
+                android:foreground="?android:attr/selectableItemBackground"
+                app:cardCornerRadius="10dp"
+                app:cardElevation="8dp"
+
+
+                >
+
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
 
-                    android:layout_margin="20dp"
+                    android:background="#657BFC8C"
 
+                    android:orientation="vertical">
 
-                    android:foreground="?android:attr/selectableItemBackground"
-                    app:cardCornerRadius="10dp"
-                    app:cardElevation="8dp"
-
-
-                    >
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
+                    <TextView
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
 
-                        android:background="#657BFC8C"
+                        android:layout_marginStart="5dp"
 
-                        android:orientation="vertical"
-                        >
+                        android:fontFamily="@font/koho_semibold"
 
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
+                        android:paddingStart="10dp"
+                        android:paddingTop="10dp"
+                        android:paddingEnd="10dp"
 
-                            android:layout_marginStart="5dp"
+                        android:paddingBottom="5dp"
+                        android:text="@string/diagnosis"
+                        android:textColor="@color/grey"
+                        android:textSize="15sp"
 
-                            android:fontFamily="@font/koho_semibold"
+                        />
 
-                            android:text="@string/diagnosis"
-                            android:textColor="@color/grey"
-                            android:textSize="15sp"
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
 
-                            android:paddingTop="10dp"
-                            android:paddingStart="10dp"
-                            android:paddingEnd="10dp"
-                            android:paddingBottom="5dp"
+                        android:layout_marginStart="10dp"
+                        android:layout_marginEnd="10dp"
+                        android:layout_marginBottom="10dp"
 
-                            />
-
-                        <View
-                            android:layout_width="match_parent"
-                            android:layout_height="1dp"
-
-                            android:layout_marginBottom="10dp"
-                            android:layout_marginStart="10dp"
-                            android:layout_marginEnd="10dp"
-
-                            android:background="@color/grey_low_transparent" />
+                        android:background="@color/grey_low_transparent" />
 
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -136,13 +134,13 @@
                             android:layout_height="100dp"
 
                             android:layout_marginStart="10dp"
-                            android:layout_marginEnd="10dp"
-
-                            app:srcCompat="@drawable/happy_plus"
-                            android:contentDescription="@string/impression"
-
-                            android:layout_marginBottom="10dp"
                             android:layout_marginTop="20dp"
+
+                            android:layout_marginEnd="10dp"
+                            android:layout_marginBottom="10dp"
+
+                            android:contentDescription="@string/impression"
+                            app:srcCompat="@drawable/happy_plus"
 
                             />
 
@@ -154,11 +152,11 @@
                             android:layout_marginEnd="10dp"
                             android:fontFamily="@font/koho_bold"
                             android:text="@string/healthy"
+                            android:textAlignment="center"
                             android:textColor="#000000"
-                            android:textSize="40sp"
 
-                            android:textStyle="bold"
-                            android:textAlignment="center"/>
+                            android:textSize="40sp"
+                            android:textStyle="bold" />
 
                         <TextView
                             android:id="@+id/healthy_description"
@@ -167,22 +165,20 @@
                             android:layout_marginStart="10dp"
                             android:layout_marginEnd="10dp"
                             android:fontFamily="@font/koho_semibold"
+                            android:justificationMode="inter_word"
                             android:text="@string/disclaimer_health_1"
                             android:textColor="#000000"
-                            android:textSize="16sp"
-                            android:justificationMode="inter_word"
-                            />
+                            android:textSize="16sp" />
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Note"
-                            android:fontFamily="@font/koho_semibold"
-                            android:textColor="#000000"
-                            android:textStyle="italic"
-                            android:layout_marginTop="20dp"
                             android:layout_marginStart="10dp"
-                            />
+                            android:layout_marginTop="20dp"
+                            android:fontFamily="@font/koho_semibold"
+                            android:text="Note"
+                            android:textColor="#000000"
+                            android:textStyle="italic" />
 
                         <TextView
                             android:id="@+id/healthy_description2"
@@ -191,20 +187,18 @@
                             android:layout_marginStart="10dp"
                             android:layout_marginEnd="10dp"
                             android:fontFamily="@font/koho"
+                            android:justificationMode="inter_word"
                             android:text="@string/healthy_disclaimer_2"
                             android:textColor="#000000"
-                            android:textSize="14sp"
-                            android:justificationMode="inter_word"
-                            />
-
+                            android:textSize="14sp" />
 
 
                     </LinearLayout>
 
 
-                    </LinearLayout>
+                </LinearLayout>
 
-                </androidx.cardview.widget.CardView>
+            </androidx.cardview.widget.CardView>
 
 
             <androidx.cardview.widget.CardView
@@ -228,8 +222,7 @@
 
                     android:background="?attr/colorPrimaryVariant"
 
-                    android:orientation="vertical"
-                    >
+                    android:orientation="vertical">
 
                     <TextView
                         android:layout_width="wrap_content"
@@ -239,14 +232,14 @@
 
                         android:fontFamily="@font/koho_semibold"
 
+                        android:paddingStart="10dp"
+                        android:paddingTop="10dp"
+                        android:paddingEnd="10dp"
+
+                        android:paddingBottom="5dp"
                         android:text="@string/diagnosis"
                         android:textColor="@color/grey"
                         android:textSize="15sp"
-
-                        android:paddingTop="10dp"
-                        android:paddingStart="10dp"
-                        android:paddingEnd="10dp"
-                        android:paddingBottom="5dp"
 
                         />
 
@@ -254,9 +247,9 @@
                         android:layout_width="match_parent"
                         android:layout_height="1dp"
 
-                        android:layout_marginBottom="10dp"
                         android:layout_marginStart="10dp"
                         android:layout_marginEnd="10dp"
+                        android:layout_marginBottom="10dp"
 
                         android:background="@color/grey_low_transparent" />
 
@@ -265,11 +258,10 @@
                         android:id="@+id/recyclerView"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        tools:listitem="@layout/diagnosis_result"
-
                         android:layout_marginStart="10dp"
+
                         android:layout_marginEnd="10dp"
-                        />
+                        tools:listitem="@layout/diagnosis_result" />
 
 
                     <Button
@@ -277,13 +269,13 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
 
-                        android:background="@drawable/transparent_see_more"
-                        android:foreground="?android:attr/selectableItemBackground"
-
-
                         android:layout_marginTop="10dp"
+                        android:background="@drawable/transparent_see_more"
+
 
                         android:fontFamily="@font/koho_semibold"
+
+                        android:foreground="?android:attr/selectableItemBackground"
 
                         android:text="@string/show_more"
 
@@ -318,8 +310,7 @@
 
                     android:background="?attr/colorPrimaryVariant"
 
-                    android:orientation="vertical"
-                    >
+                    android:orientation="vertical">
 
                     <TextView
                         android:layout_width="wrap_content"
@@ -329,14 +320,14 @@
 
                         android:fontFamily="@font/koho_semibold"
 
+                        android:paddingStart="10dp"
+                        android:paddingTop="10dp"
+                        android:paddingEnd="10dp"
+
+                        android:paddingBottom="5dp"
                         android:text="@string/analysis"
                         android:textColor="@color/grey"
                         android:textSize="15sp"
-
-                        android:paddingTop="10dp"
-                        android:paddingStart="10dp"
-                        android:paddingEnd="10dp"
-                        android:paddingBottom="5dp"
 
                         />
 
@@ -344,18 +335,17 @@
                         android:layout_width="match_parent"
                         android:layout_height="1dp"
 
-                        android:layout_marginBottom="10dp"
                         android:layout_marginStart="10dp"
                         android:layout_marginEnd="10dp"
+                        android:layout_marginBottom="10dp"
 
                         android:background="@color/grey_low_transparent" />
 
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
 
-                    android:orientation="horizontal"
-                    >
+                        android:orientation="horizontal">
 
                         <!-- Play/pause Button -->
                         <Button
@@ -364,8 +354,8 @@
                             android:layout_height="40dp"
                             android:layout_alignParentBottom="true"
 
-                            android:layout_marginStart="10dp"
                             android:layout_margin="12dp"
+                            android:layout_marginStart="10dp"
 
                             android:background="@drawable/play_btn" />
 
@@ -378,10 +368,10 @@
                             android:layout_above="@id/playPauseButton"
                             android:layout_marginTop="22dp"
 
-                            android:progressTint="@color/dark_blue"
-                            android:secondaryProgressTint="@color/light_blue"
                             android:progressBackgroundTint="@color/blue"
                             android:progressBackgroundTintMode="screen"
+                            android:progressTint="@color/dark_blue"
+                            android:secondaryProgressTint="@color/light_blue"
 
                             android:thumbTint="@color/blue"
 
@@ -389,7 +379,7 @@
                             />
 
 
-                </LinearLayout>
+                    </LinearLayout>
 
                 </LinearLayout>
 
@@ -398,30 +388,60 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="@drawable/disclaimer_gradient"
-                android:text="@string/final_disclaimer"
-                android:fontFamily="@font/koho_semibold"
+                android:layout_gravity="bottom"
+                android:layout_marginTop="10dp"
+                android:layout_weight="1"
 
+
+                android:background="@drawable/disclaimer_gradient"
+                android:fontFamily="@font/koho_semibold"
+                android:justificationMode="inter_word"
+                android:paddingStart="10dp"
 
                 android:paddingTop="40dp"
-                android:paddingBottom="10dp"
-                android:paddingStart="10dp"
                 android:paddingEnd="10dp"
-
-                android:layout_marginTop="10dp"
+                android:paddingBottom="10dp"
+                android:text="@string/final_disclaimer"
                 android:textSize="14sp"
-                android:textStyle="italic"
-                android:justificationMode="inter_word"
-                android:layout_weight="1"
-                android:layout_gravity="bottom"
-                />
-
-
+                android:textStyle="italic" />
 
 
         </LinearLayout>
 
     </ScrollView>
+
+
+
+    <android.gesture.GestureOverlayView
+        android:id="@+id/pop_up_overlay"
+
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/blur_white"
+
+
+
+        android:visibility="gone"
+        />
+
+    <io.alterac.blurkit.BlurLayout
+        android:id="@+id/blurLayout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+
+
+        app:blk_blurRadius="5"
+        app:blk_downscaleFactor="0.12"
+
+        app:blk_fps="0"
+
+        android:visibility="gone"
+
+        app:layout_constraintBottom_toBottomOf="@+id/scrollView2"
+        app:layout_constraintEnd_toEndOf="@+id/scrollView2"
+        app:layout_constraintStart_toStartOf="@id/scrollView2"
+        app:layout_constraintTop_toTopOf="@id/scrollView2"/>
+
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

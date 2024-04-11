@@ -9,6 +9,7 @@
 
 <!--    Common -->
     <color name="black">#FF000000</color>
+    <color name="transparent_black">#D2000000</color>
     <color name="white">#FFFFFFFF</color>
     <color name="grey">#615959</color>
     <color name="grey_low_transparent">#70615959</color>
