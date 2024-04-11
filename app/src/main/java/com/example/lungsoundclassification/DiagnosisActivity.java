@@ -5,6 +5,7 @@ import static android.webkit.WebSettings.RenderPriority.LOW;
 
 import static java.text.DateFormat.MEDIUM;
 
+import android.content.Context;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.media.MediaPlayer;
@@ -19,6 +20,7 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.cardview.widget.CardView;
 import androidx.recyclerview.widget.DefaultItemAnimator;
@@ -82,7 +84,7 @@ public class DiagnosisActivity extends AppCompatActivity {
         healthyDisclaimer = findViewById(R.id.healthy_description);
 
         assert responseObject != null;
-        if (responseObject.getDiseases().size() == 0 || true){ // True here
+        if (responseObject.getDiseases().size() == 0){ // True here
 
             String updatedPercentage = "85.12";  // Replace with your updated percentage value
             String updatedText = getString(R.string.disclaimer_health_1, updatedPercentage);
@@ -316,6 +318,7 @@ public class DiagnosisActivity extends AppCompatActivity {
             audioPlayer.release();
         }
     }
+
 
 }
 
