@@ -1,15 +1,24 @@
 package com.example.lungsoundclassification;
 
+import static android.Manifest.permission.READ_EXTERNAL_STORAGE;
+import static android.Manifest.permission.WRITE_EXTERNAL_STORAGE;
 import static android.webkit.WebSettings.RenderPriority.HIGH;
 import static android.webkit.WebSettings.RenderPriority.LOW;
 
 import static java.text.DateFormat.MEDIUM;
 
 import android.content.Context;
+import android.content.pm.PackageManager;
 import android.content.res.ColorStateList;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Paint;
+import android.graphics.Typeface;
+import android.graphics.pdf.PdfDocument;
 import android.media.MediaPlayer;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
 import android.view.View;
@@ -18,11 +27,15 @@ import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.SeekBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.cardview.widget.CardView;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.DefaultItemAnimator;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -35,9 +48,15 @@ import com.github.mikephil.charting.data.RadarDataSet;
 import com.github.mikephil.charting.data.RadarEntry;
 import com.github.mikephil.charting.formatter.IndexAxisValueFormatter;
 
+import org.w3c.dom.Document;
+
 import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+
 
 public class DiagnosisActivity extends AppCompatActivity {
 
@@ -45,6 +64,7 @@ public class DiagnosisActivity extends AppCompatActivity {
     private List<DiagnosisModel> viewableDiagnosisList;
     private DiagnosisAdapter adapter;
     private RadarChart radarChart;
+    private ResponseObject responseObject;
 
     // Audio Player related Variables
     private AudioPlayer audioPlayer;
@@ -62,6 +82,8 @@ public class DiagnosisActivity extends AppCompatActivity {
     private TextView healthyDisclaimer;
     private View emptySpaceView;
 
+    private static final int PERMISSION_REQUEST_CODE = 200;
+
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -69,7 +91,7 @@ public class DiagnosisActivity extends AppCompatActivity {
         setContentView(R.layout.diagnosis_view);
 
         // getting extra
-        ResponseObject responseObject = (ResponseObject) getIntent().getSerializableExtra("response_object");
+        responseObject = (ResponseObject) getIntent().getSerializableExtra("response_object");
         byte[] wavData = (byte[]) getIntent().getSerializableExtra("wav_data");
 
         ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(wavData);
@@ -271,6 +293,26 @@ public class DiagnosisActivity extends AppCompatActivity {
                 }
             } );
 
+            // Configuring download pdf button
+
+            Button downloadPDF = findViewById(R.id.download_pdf);
+
+            // Set an OnClickListener for the button
+            downloadPDF.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+
+                    if (checkPermission()) {
+                        Toast.makeText(DiagnosisActivity.this, "Permission Granted", Toast.LENGTH_SHORT).show();
+                    } else {
+                        requestPermission();
+                    }
+
+                    createPDF(); // Call your PDF generation method
+
+                }
+            });
+
         }
 
     }
@@ -303,6 +345,92 @@ public class DiagnosisActivity extends AppCompatActivity {
         for(int i = diagnosisList.size() - 1; i >= 1; i--){
             viewableDiagnosisList.remove(i);
             adapter.notifyItemRemoved(i);
+        }
+    }
+
+    private void createPDF(){
+
+        PdfDocument pdfDocument = new PdfDocument();
+
+        Paint paint = new Paint();
+        Paint title = new Paint();
+
+        PdfDocument.PageInfo mypageInfo = new PdfDocument.PageInfo.Builder(1120, 792, 1).create();
+        PdfDocument.Page myPage = pdfDocument.startPage(mypageInfo);
+
+        Canvas canvas = myPage.getCanvas();
+
+        title.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.NORMAL));
+        title.setTextSize(15);
+
+        title.setColor(ContextCompat.getColor(this, R.color.black));
+
+        canvas.drawText("A portal for IT Proffesionals", 209, 100, title);
+        canvas.drawText("Geeks for Geeks", 209, 80, title);
+
+        title.setTypeface(Typeface.defaultFromStyle(Typeface.NORMAL));
+        title.setColor(ContextCompat.getColor(this, R.color.blue));
+        title.setTextSize(15);
+
+        title.setTextAlign(Paint.Align.CENTER);
+        canvas.drawText("This is sample document which we have created.", 396, 560, title);
+
+        pdfDocument.finishPage(myPage);
+
+        // TODO : Change this file path it is just for the emulator
+        File file = new File(getExternalFilesDir(null), "GFG.pdf");
+
+        try {
+            // after creating a file name we will
+            // write our PDF file to that location.
+            pdfDocument.writeTo(new FileOutputStream(file));
+
+            // below line is to print toast message
+            // on completion of PDF generation.
+            Toast.makeText(DiagnosisActivity.this, "PDF file generated successfully.", Toast.LENGTH_SHORT).show();
+        } catch (IOException e) {
+            // below line is used
+            // to handle error
+            e.printStackTrace();
+        }
+        // after storing our pdf to that
+        // location we are closing our PDF file.
+        pdfDocument.close();
+
+
+
+    }
+
+    private boolean checkPermission() {
+        // checking of permissions.
+        int permission1 = ContextCompat.checkSelfPermission(getApplicationContext(), WRITE_EXTERNAL_STORAGE);
+        int permission2 = ContextCompat.checkSelfPermission(getApplicationContext(), READ_EXTERNAL_STORAGE);
+        return permission1 == PackageManager.PERMISSION_GRANTED && permission2 == PackageManager.PERMISSION_GRANTED;
+    }
+
+    private void requestPermission() {
+        // requesting permissions if not provided.
+        ActivityCompat.requestPermissions(this, new String[]{WRITE_EXTERNAL_STORAGE, READ_EXTERNAL_STORAGE}, PERMISSION_REQUEST_CODE);
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == PERMISSION_REQUEST_CODE) {
+            if (grantResults.length > 0) {
+
+                // after requesting permissions we are showing
+                // users a toast message of permission granted.
+                boolean writeStorage = grantResults[0] == PackageManager.PERMISSION_GRANTED;
+                boolean readStorage = grantResults[1] == PackageManager.PERMISSION_GRANTED;
+
+                if (writeStorage && readStorage) {
+                    Toast.makeText(this, "Permission Granted..", Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(this, "Permission Denied.", Toast.LENGTH_SHORT).show();
+                    finish();
+                }
+            }
         }
     }
 
