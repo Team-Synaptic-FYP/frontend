@@ -76,9 +76,6 @@ public class MainActivity extends AppCompatActivity {
 
             Log.e("FileValidation", isFileAccessible(fileUri, this)?"Accessible":"Not Accessible");
 
-            // get file name TODO: Remove This
-            String[] fileSplit = fileUri.getPath().split("/");
-            String fileName = fileSplit[fileSplit.length - 1];
 
             byte[] wavData = null;
 

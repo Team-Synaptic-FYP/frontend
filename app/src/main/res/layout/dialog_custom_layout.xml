@@ -2,14 +2,22 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
+    android:layout_height="500dp"
     android:id="@+id/root_vg"
 
     >
 
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+    >
+
     <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+
+        android:layout_margin="10dp"
+        >
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -20,11 +28,13 @@
                 android:id="@+id/txt_title"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
+                android:layout_gravity="left"
 
                 android:text="Custom Dialog Title"
+                android:textStyle="bold"
+                android:fontFamily="@font/koho"
 
-                android:textSize="20sp" />
+                android:textSize="32dp" />
 
             <TextView
                 android:id="@+id/txt_about"
@@ -33,10 +43,49 @@
                 android:justificationMode="inter_word"
 
 
-                android:text="Although this is a demo project, And this project is all about the customization of a Dialog Box. We can design whatever we want!"
+                android:text="dummy body"
+
+                android:paddingStart="12dp"
+                android:paddingEnd="32dp"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="left"
+
+                android:text="Common Symptoms"
+                android:textStyle="bold"
+                android:fontFamily="@font/koho"
+
+                android:textSize="32dp" />
+
+            <TextView
+                android:id="@+id/txt_symptoms"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:justificationMode="inter_word"
+
+
+                android:text="NULL"
 
                 android:paddingStart="12dp"
                 android:paddingEnd="12dp"/>
+
+            <TextView
+                android:id="@+id/txt_res"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:justificationMode="inter_word"
+
+
+                android:text="https://my.clevelandclinic.org/health/articles/4022-upper-respiratory-infection"
+
+                android:paddingStart="12dp"
+                android:paddingEnd="12dp"
+
+                android:autoLink="web"
+                android:linksClickable="true"
+                />
 
 
             <RelativeLayout
@@ -61,6 +110,7 @@
 
                     android:layout_centerInParent="true"
 
+
                     android:layout_marginBottom="30dp"
                     />
 
@@ -73,6 +123,9 @@
             </LinearLayout>
 
     </RelativeLayout>
+
+
+    </ScrollView>
 
 
 

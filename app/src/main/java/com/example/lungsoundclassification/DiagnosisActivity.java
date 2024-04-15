@@ -539,6 +539,22 @@ public class DiagnosisActivity extends AppCompatActivity {
         staticLayout.draw(canvas);
         canvas.restore();
 
+        // Tested date time -------------------------------------------------------------
+        Paint testTime = new Paint();
+        testTime.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.ITALIC)); // Normal text style
+        testTime.setTextSize(40); // Adjust text size as needed
+        testTime.setColor(ContextCompat.getColor(this, R.color.black)); // Set text color
+
+        // Define the contact details
+        String testTimeText = "Diagnosed time : " + getCurrentDateTimeShort();
+
+
+        // Define the starting X and Y coordinates for the contact details
+        float textTimeX = cont_padding_left; // Align with left padding
+        float textTimeY = height - padding - 300; // Position just above the bottom padding
+
+        canvas.drawText(testTimeText, textTimeX, textTimeY, testTime);
+
         // Contact details ---------------------------------------------------------------
 
         Paint contactPaint = new Paint();
