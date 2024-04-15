@@ -11,6 +11,7 @@ import android.content.Context;
 import android.content.pm.PackageManager;
 import android.content.res.ColorStateList;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -21,6 +22,11 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
+import android.text.Layout;
+import android.text.SpannableStringBuilder;
+import android.text.StaticLayout;
+import android.text.TextPaint;
+import android.text.style.StyleSpan;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -54,6 +60,8 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -308,7 +316,7 @@ public class DiagnosisActivity extends AppCompatActivity {
                         requestPermission();
                     }
 
-                    createPDF(); // Call your PDF generation method
+                    createPDF(responseObject.getDiseases(), responseObject.getProbabilities()); // Call your PDF generation method
 
                 }
             });
@@ -348,37 +356,220 @@ public class DiagnosisActivity extends AppCompatActivity {
         }
     }
 
-    private void createPDF(){
+    private void createPDF(List<String> diagnosisNames, List<Float> diagnosisProbs){
 
         PdfDocument pdfDocument = new PdfDocument();
 
+        // define page size in pixels (A4)
+        int desiredDPI = 300; // Higher DPI for higher quality images
+        int width = (int) (8.27 * desiredDPI); // A4 page width in inches (8.27) * desiredDPI
+        int height = (int) (11.69 * desiredDPI);
+        float padding = 100f;
+
+        // Assigning the content padding
+        float cont_padding_left = padding + 100;
+        float cont_padding_right = width - padding - 100;
+        float cont_padding_top = padding + 100;
+        float cont_padding_bottom = padding - height - 100;
+
+        // Create page info and start a page
+        PdfDocument.PageInfo pageInfo = new PdfDocument.PageInfo.Builder(width, height, 1).create();
+        PdfDocument.Page page = pdfDocument.startPage(pageInfo);
+        Canvas canvas = page.getCanvas();
+
+        // Paint Objects for different types of text and drawing
         Paint paint = new Paint();
-        Paint title = new Paint();
+        Paint titlePaint = new Paint();
+        Paint borderPaint = new Paint();
+        Paint watermarkPaint = new Paint();
+        Paint underlinePaint = new Paint();
 
-        PdfDocument.PageInfo mypageInfo = new PdfDocument.PageInfo.Builder(1120, 792, 1).create();
-        PdfDocument.Page myPage = pdfDocument.startPage(mypageInfo);
+        // Border ---------------------------------------------
 
-        Canvas canvas = myPage.getCanvas();
+        // Configure border Paint
+        borderPaint.setStyle(Paint.Style.STROKE);
+        borderPaint.setColor(ContextCompat.getColor(this, R.color.black));
+        borderPaint.setStrokeWidth(2);
 
-        title.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.NORMAL));
-        title.setTextSize(15);
+        // Draw the border around the page
+        float left = padding;
+        float top = padding;
+        float right = width - padding;
+        float bottom = height - padding;
 
-        title.setColor(ContextCompat.getColor(this, R.color.black));
+        canvas.drawRect(left, top, right, bottom, borderPaint);
 
-        canvas.drawText("A portal for IT Proffesionals", 209, 100, title);
-        canvas.drawText("Geeks for Geeks", 209, 80, title);
+        // Watermark ----------------------------------------------------------
 
-        title.setTypeface(Typeface.defaultFromStyle(Typeface.NORMAL));
-        title.setColor(ContextCompat.getColor(this, R.color.blue));
-        title.setTextSize(15);
+        // Load watermark image
+        Bitmap watermarkBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.pdf_watermark);
+        // Scale the watermark image to fit the page
 
-        title.setTextAlign(Paint.Align.CENTER);
-        canvas.drawText("This is sample document which we have created.", 396, 560, title);
+        // Draw watermark image behind all other content
+        canvas.drawBitmap(watermarkBitmap, 0, 0, watermarkPaint);
 
-        pdfDocument.finishPage(myPage);
+        // Header --------------------------------------------------------------
+
+        // Configure title paint
+        titlePaint.setTypeface(Typeface.create(Typeface.MONOSPACE, Typeface.NORMAL));
+        titlePaint.setTextSize(150);
+        titlePaint.setColor(ContextCompat.getColor(this, R.color.black));
+
+        // Draw the application title at the top left corner
+        float titleX = cont_padding_left;
+        float titleY = cont_padding_top + 200;
+        canvas.drawText("PulmoSync", titleX, titleY, titlePaint);
+
+        // Body -------------------------------------------------------------------
+        // Add underlined text
+        paint.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.NORMAL));
+        paint.setTextSize(60);
+        paint.setColor(ContextCompat.getColor(this, R.color.black));
+        paint.setUnderlineText(true); // Enable underline
+
+        // Define the text to be underlined
+        String underlinedText = "Disease Classification";
+
+        // Define the x and y coordinates for the text
+        float textX = cont_padding_left;
+        float textY = cont_padding_top + 600;
+
+        // Draw the underlined text
+        canvas.drawText(underlinedText, textX, textY, paint);
+
+        // Diseases - tabulated representation
+        float tableStartX = cont_padding_left;
+        float tableStartY = cont_padding_top + 750;
+        float column1Width = 500;
+        float column2Width = 600;
+        float rowHeight = 120;
+
+        // Define the headers for the table
+        String[] headers = {"Disease", "Probability"};
+
+        // Paint for the header row (bold text)
+        Paint headerPaint = new Paint();
+        headerPaint.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.BOLD));
+        headerPaint.setTextSize(60);
+        headerPaint.setColor(ContextCompat.getColor(this, R.color.black));
+
+        // Draw the header row
+        canvas.drawText(headers[0], tableStartX, tableStartY, headerPaint); // Left-aligned
+        canvas.drawText(headers[1], tableStartX + column1Width + column2Width - headerPaint.measureText(headers[1]), tableStartY, headerPaint); // Right-aligned
+
+        // Define the data rows
+        String[][] data = {
+                {diagnosisNames.get(0), String.format("%.2f%%", diagnosisProbs.get(0) * 100)},
+                {diagnosisNames.get(1), String.format("%.2f%%", diagnosisProbs.get(1) * 100)},
+                {diagnosisNames.get(2), String.format("%.2f%%", diagnosisProbs.get(2) * 100)},
+
+        };
+
+        // Paint for the data rows
+        Paint dataPaint = new Paint();
+        dataPaint.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.NORMAL));
+        dataPaint.setTextSize(60);
+        dataPaint.setColor(ContextCompat.getColor(this, R.color.black));
+
+        // Iterate over the data and draw each row
+        for (int i = 0; i < data.length; i++) {
+            // Calculate the Y position for the current row
+            float rowY = tableStartY + (i + 1) * rowHeight;
+
+            // Draw the data in the left column (left-aligned)
+            canvas.drawText(data[i][0], tableStartX, rowY, dataPaint);
+
+            // Calculate the X position for the right column and draw the data (right-aligned)
+            float rightColumnX = tableStartX + column1Width + column2Width - dataPaint.measureText(data[i][1]);
+            canvas.drawText(data[i][1], rightColumnX, rowY, dataPaint);
+        }
+
+        // Applying the radar chart -------------------------------------------------
+        radarChart.setDrawingCacheEnabled(true);
+        radarChart.buildDrawingCache();
+        Bitmap radarChartBitmap = Bitmap.createBitmap(radarChart.getDrawingCache());
+
+        radarChart.setDrawingCacheEnabled(false);
+
+        // defining positions
+        float chartX = cont_padding_left + 1000;
+        float chartY = cont_padding_top + 500;
+
+        canvas.drawBitmap(radarChartBitmap, chartX, chartY, null);
+
+        // Comment and disclaimer -----------------------------------------------------------
+
+        // Configure text paint
+        TextPaint textPaint = new TextPaint();
+        textPaint.setColor(ContextCompat.getColor(this, R.color.black));
+        textPaint.setTextSize(50); // Adjust text size as needed
+
+        // Set justified alignment using Layout.Alignment
+        Layout.Alignment alignment = Layout.Alignment.ALIGN_NORMAL;
+        textPaint.setTextAlign(Paint.Align.LEFT);
+
+        // Paragraph text
+        String paragraphText = "COMMENT : \nThis categorization is only diagnosing 10 lung diseases including Asthma, Bronchiectasis, Bronchiolitis, Bronchitis, COPD, Lung Fibrosis, Pleural Effusion, Pneumonia, URTI any other disease containing lung audio will give incorrect results for the application. Therefore users are advised to seek professional medical care before taking any medication based on the results of this mobile application.\n\n" +
+                "This sound categorization is for indication purposes only and should not be taken as a replacement or alternative for professional medical advice.";
+
+        SpannableStringBuilder spannableText = new SpannableStringBuilder(paragraphText);
+
+        int boldStartIndex = paragraphText.indexOf("This sound categorization is for indication purposes only");
+        int boldEndIndex = paragraphText.indexOf("This sound categorization is for indication purposes only") + "This sound categorization is for indication purposes only and should not be taken as a replacement or alternative for professional medical advice.".length();
+
+
+        // Apply bold style using a StyleSpan
+        spannableText.setSpan(new StyleSpan(Typeface.BOLD), boldStartIndex, boldEndIndex, 0);
+
+
+        // Create a StaticLayout to handle the text layout
+        StaticLayout staticLayout = new StaticLayout(
+                spannableText,
+                textPaint,
+                (int) (cont_padding_right - cont_padding_left), // Width of the paragraph area (page width minus padding)
+                alignment,
+                1.5f, // Line spacing multiplier
+                0.0f, // Line spacing extra
+                true // Justify the paragraph
+        );
+
+        // Draw the paragraph within the specified area
+        canvas.save();
+        canvas.translate(cont_padding_left, cont_padding_top + 1600); // Adjust the starting position of the text as needed
+        staticLayout.draw(canvas);
+        canvas.restore();
+
+        // Contact details ---------------------------------------------------------------
+
+        Paint contactPaint = new Paint();
+        contactPaint.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.NORMAL)); // Normal text style
+        contactPaint.setTextSize(40); // Adjust text size as needed
+        contactPaint.setColor(ContextCompat.getColor(this, R.color.black)); // Set text color
+
+        // Define the contact details
+        String contactDetails = "Contact Us: \nEmail: lungsoundclassification@gmail.com \nPhone: +94 76 781 6691";
+
+        String[] lines = contactDetails.split("\n");
+
+        // Define the starting X and Y coordinates for the contact details
+        float contactX = cont_padding_left; // Align with left padding
+        float contactY = height - padding - 200; // Position just above the bottom padding
+
+        // Draw each line of contact details separately
+        for (String line : lines) {
+            // Draw the current line of text on the canvas
+            canvas.drawText(line, contactX, contactY, contactPaint);
+
+            // Increment the Y-coordinate to move to the next line
+            contactY += contactPaint.getTextSize() * 1.5; // Adjust the line height if needed
+        }
+
+
+
+        pdfDocument.finishPage(page);
 
         // TODO : Change this file path it is just for the emulator
-        File file = new File(getExternalFilesDir(null), "GFG.pdf");
+        File file = new File(getExternalFilesDir(null), "pulmosync_diagnosis_report_" + getCurrentDateTimeShort() + ".pdf");
 
         try {
             // after creating a file name we will
@@ -398,6 +589,27 @@ public class DiagnosisActivity extends AppCompatActivity {
         pdfDocument.close();
 
 
+
+    }
+
+    public String getCurrentDateTimeShort() {
+        // Get the current date and time
+        LocalDateTime currentDateTime = null;
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            currentDateTime = LocalDateTime.now();
+            // Define the short date-time format pattern
+            // You can adjust the format pattern according to your preference
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+
+            // Format the current date and time using the defined pattern
+
+            // Return the formatted date and time
+            return currentDateTime.format(formatter);
+        }
+
+
+
+        return "";
 
     }
 
