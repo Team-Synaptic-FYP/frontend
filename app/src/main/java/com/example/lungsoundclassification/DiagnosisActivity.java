@@ -8,15 +8,18 @@ import static android.webkit.WebSettings.RenderPriority.LOW;
 import static java.text.DateFormat.MEDIUM;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.ColorStateList;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Typeface;
 import android.graphics.pdf.PdfDocument;
+import android.media.Image;
 import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.Environment;
@@ -27,7 +30,9 @@ import android.text.SpannableStringBuilder;
 import android.text.StaticLayout;
 import android.text.TextPaint;
 import android.text.style.StyleSpan;
+import android.util.Base64;
 import android.view.View;
+import android.view.ViewTreeObserver;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
@@ -64,6 +69,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 
 public class DiagnosisActivity extends AppCompatActivity {
@@ -100,7 +106,7 @@ public class DiagnosisActivity extends AppCompatActivity {
 
         // getting extra
         responseObject = (ResponseObject) getIntent().getSerializableExtra("response_object");
-        byte[] wavData = (byte[]) getIntent().getSerializableExtra("wav_data");
+        byte[] wavData = retrieveWavDataFromLocalStorage(this);
 
         ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(wavData);
 
@@ -114,16 +120,150 @@ public class DiagnosisActivity extends AppCompatActivity {
         healthyDisclaimer = findViewById(R.id.healthy_description);
 
         assert responseObject != null;
-        if (responseObject.getDiseases().size() == 0){ // True here
+        if (responseObject.getDiseases().size() == 0){
 
-            String updatedPercentage = "85.12";  // Replace with your updated percentage value
+            String updatedPercentage = String.format("%.2f%%", responseObject.getProbabilities().get(0) * 100);  // Replace with your updated percentage value
             String updatedText = getString(R.string.disclaimer_health_1, updatedPercentage);
             healthyDisclaimer.setText(updatedText);
 
             healthyCard.setVisibility(View.VISIBLE);
             diagnosisCard.setVisibility(View.GONE);
             radarChartCard.setVisibility(View.GONE);
-            analysisCard.setVisibility(View.GONE);
+            analysisCard.setVisibility(View.VISIBLE);
+
+
+            // XAI Media player configuration -----------------------------------
+
+            // Initialize UI components for audio player
+            playPauseButton = findViewById(R.id.playPauseButton);
+            seekBar = findViewById(R.id.seekBar);
+            ImageView xaiImage = findViewById(R.id.xai_image);
+
+            String base64Image = retrieveBase64ImageFromLocalStorage(this);
+
+            Bitmap xaiBitmap = decodeBase64(base64Image);
+
+
+            xaiImage.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+                @Override
+                public void onGlobalLayout() {
+                    xaiImage.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+
+                    Bitmap scaledBitmap = performCropping(xaiBitmap, xaiImage);
+
+
+
+                    xaiImage.setImageBitmap(scaledBitmap);
+                }
+            });
+
+            // Initialize the audio player
+            audioPlayer = new AudioPlayer(this, byteArrayInputStream);
+            seekBar.setMax(audioPlayer.getDuration());
+
+            // Initialize a Handler
+            handler = new Handler();
+
+            // Define the runnable to update the seek bar
+            updateSeekBarRunnable = new Runnable() {
+                @Override
+                public void run() {
+                    // Update the seek bar with the current audio position
+                    if (isPlaying) {
+                        int currentPosition = audioPlayer.getCurrentPosition();
+                        seekBar.setProgress(currentPosition);
+
+                        // Schedule the runnable to run again after a delay
+                        handler.postDelayed(this, 10); // Update every 10 ms
+                    }
+                }
+            };
+
+            // Play/Pause button functionality
+            playPauseButton.setOnClickListener(view -> {
+                if (isPlaying) {
+                    // If audio is playing, pause it
+                    audioPlayer.pause();
+                    isPlaying = false;
+
+                    // Update the button to "Play"
+                    playPauseButton.setBackgroundResource(R.drawable.play_btn);
+
+                    // Stop updating the seek bar
+                    handler.removeCallbacks(updateSeekBarRunnable);
+                } else {
+                    // If audio is paused, play it
+                    audioPlayer.play();
+                    isPlaying = true;
+
+                    // Update the button text to "Pause"
+                    playPauseButton.setBackgroundResource(R.drawable.pause_btn);
+
+                    // Start updating the seek bar
+                    handler.post(updateSeekBarRunnable);
+                }
+            });
+
+            seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+                @Override
+                public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                    if (fromUser) {
+                        audioPlayer.seekTo(progress);
+                    }
+                }
+
+                @Override
+                public void onStartTrackingTouch(SeekBar seekBar) {
+                    // Pause audio while seeking
+                    audioPlayer.pause();
+                    isPlaying = false;
+                    playPauseButton.setBackgroundResource(R.drawable.play_btn);
+                    handler.removeCallbacks(updateSeekBarRunnable);
+                }
+
+                @Override
+                public void onStopTrackingTouch(SeekBar seekBar) {
+                    // Resume audio after seeking
+                    audioPlayer.play();
+                    isPlaying = true;
+                    playPauseButton.setBackgroundResource(R.drawable.pause_btn);
+                    handler.post(updateSeekBarRunnable);
+                }
+
+            });
+
+            audioPlayer.getMediaPlayer().setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+                @Override
+                public void onCompletion(MediaPlayer mediaPlayer) {
+                    // When audio is completed, set the button text to "Play"
+                    isPlaying = false;
+                    playPauseButton.setBackgroundResource(R.drawable.play_btn);
+
+                    // Stop updating the seek bar
+                    handler.removeCallbacks(updateSeekBarRunnable);
+                }
+            } );
+
+
+            // Configuring download pdf button -------------------------------------------
+
+            Button downloadPDF = findViewById(R.id.download_pdf);
+
+            // Set an OnClickListener for the button
+            downloadPDF.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+
+                    if (checkPermission()) {
+                        Toast.makeText(DiagnosisActivity.this, "Permission Granted", Toast.LENGTH_SHORT).show();
+                    } else {
+                        requestPermission();
+                    }
+
+                    createHealthyPDF( responseObject.getProbabilities()); // Call your PDF generation method
+
+                }
+            });
 
         }
         else {
@@ -213,6 +353,25 @@ public class DiagnosisActivity extends AppCompatActivity {
             // Initialize UI components for audio player
             playPauseButton = findViewById(R.id.playPauseButton);
             seekBar = findViewById(R.id.seekBar);
+            ImageView xaiImage = findViewById(R.id.xai_image);
+
+            String base64Image = retrieveBase64ImageFromLocalStorage(this);
+
+            Bitmap xaiBitmap = decodeBase64(base64Image);
+
+
+            xaiImage.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+                @Override
+                public void onGlobalLayout() {
+                    xaiImage.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+
+                    Bitmap scaledBitmap = performCropping(xaiBitmap, xaiImage);
+
+
+
+                    xaiImage.setImageBitmap(scaledBitmap);
+                }
+            });
 
             // Initialize the audio player
             audioPlayer = new AudioPlayer(this, byteArrayInputStream);
@@ -325,6 +484,43 @@ public class DiagnosisActivity extends AppCompatActivity {
 
     }
 
+    private String retrieveBase64ImageFromLocalStorage(Context context) {
+        SharedPreferences sharedPreferences = context.getSharedPreferences("myPrefs", Context.MODE_PRIVATE);
+        return sharedPreferences.getString("base64Image", "");
+    }
+
+    private Bitmap decodeBase64(String base64Image) {
+        byte[] decodedString = Base64.decode(base64Image, Base64.DEFAULT);
+        return BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
+    }
+
+    private Bitmap performCropping(Bitmap originalBitmap, ImageView xaiImage) {
+
+        // Crop the image
+        int cropWidth = originalBitmap.getWidth() - 250; // Crop 100px from both left and right sides
+        int cropHeight = originalBitmap.getHeight() - 160; // Crop 200px from both top and bottom
+        Bitmap croppedBitmap = Bitmap.createBitmap(originalBitmap, 160, 80, cropWidth, cropHeight);
+
+        // Scale the cropped bitmap to fill the ImageView width while maintaining aspect ratio
+        float aspectRatio = (float) croppedBitmap.getHeight() / (float) croppedBitmap.getWidth();
+        int newHeight = (int) (xaiImage.getWidth() * aspectRatio);
+
+        Matrix matrix = new Matrix();
+        matrix.postScale((float) xaiImage.getWidth() / (float) croppedBitmap.getWidth(), (float) newHeight / (float) croppedBitmap.getHeight());
+
+        Bitmap scaledBitmap = Bitmap.createBitmap(croppedBitmap, 0, 0, croppedBitmap.getWidth(), croppedBitmap.getHeight(), matrix, true);
+
+        return scaledBitmap; // Return cropped bitmap
+    }
+
+    private byte[] retrieveWavDataFromLocalStorage(Context context) {
+        SharedPreferences sharedPreferences = context.getSharedPreferences("myPrefs", Context.MODE_PRIVATE);
+        String wavDataString = sharedPreferences.getString("wavData", "");
+
+        // Convert Base64 string to byte array
+        return Base64.decode(wavDataString, Base64.DEFAULT);
+    }
+
 
     // Replace this method with your actual data source logic
     private List<DiagnosisModel> getDiagnosisData(List<String> diagnosisNames, List<Float> diagnosisProbs) {
@@ -354,6 +550,248 @@ public class DiagnosisActivity extends AppCompatActivity {
             viewableDiagnosisList.remove(i);
             adapter.notifyItemRemoved(i);
         }
+    }
+
+    private void createHealthyPDF( List<Float> diagnosisProbs){
+
+        PdfDocument pdfDocument = new PdfDocument();
+
+        // define page size in pixels (A4)
+        int desiredDPI = 300; // Higher DPI for higher quality images
+        int width = (int) (8.27 * desiredDPI); // A4 page width in inches (8.27) * desiredDPI
+        int height = (int) (11.69 * desiredDPI);
+        float padding = 100f;
+
+        // Assigning the content padding
+        float cont_padding_left = padding + 100;
+        float cont_padding_right = width - padding - 100;
+        float cont_padding_top = padding + 100;
+        float cont_padding_bottom = padding - height - 100;
+
+        // Create page info and start a page
+        PdfDocument.PageInfo pageInfo = new PdfDocument.PageInfo.Builder(width, height, 1).create();
+        PdfDocument.Page page = pdfDocument.startPage(pageInfo);
+        Canvas canvas = page.getCanvas();
+
+        // Paint Objects for different types of text and drawing
+        Paint paint = new Paint();
+        Paint titlePaint = new Paint();
+        Paint borderPaint = new Paint();
+        Paint watermarkPaint = new Paint();
+        Paint underlinePaint = new Paint();
+
+        // Border ---------------------------------------------
+
+        // Configure border Paint
+        borderPaint.setStyle(Paint.Style.STROKE);
+        borderPaint.setColor(ContextCompat.getColor(this, R.color.black));
+        borderPaint.setStrokeWidth(2);
+
+        // Draw the border around the page
+        float left = padding;
+        float top = padding;
+        float right = width - padding;
+        float bottom = height - padding;
+
+        canvas.drawRect(left, top, right, bottom, borderPaint);
+
+        // Watermark ----------------------------------------------------------
+
+        // Load watermark image
+        Bitmap watermarkBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.pdf_watermark);
+        // Scale the watermark image to fit the page
+
+        // Draw watermark image behind all other content
+        canvas.drawBitmap(watermarkBitmap, 0, 0, watermarkPaint);
+
+        // Header --------------------------------------------------------------
+
+        // Configure title paint
+        titlePaint.setTypeface(Typeface.create(Typeface.MONOSPACE, Typeface.NORMAL));
+        titlePaint.setTextSize(150);
+        titlePaint.setColor(ContextCompat.getColor(this, R.color.black));
+
+        // Draw the application title at the top left corner
+        float titleX = cont_padding_left;
+        float titleY = cont_padding_top + 200;
+        canvas.drawText("PulmoSync", titleX, titleY, titlePaint);
+
+        // Body -------------------------------------------------------------------
+        // Add underlined text
+        paint.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.NORMAL));
+        paint.setTextSize(60);
+        paint.setColor(ContextCompat.getColor(this, R.color.black));
+        paint.setUnderlineText(true); // Enable underline
+
+        // Define the text to be underlined
+        String underlinedText = "Disease Classification";
+
+        // Define the x and y coordinates for the text
+        float textX = cont_padding_left;
+        float textY = cont_padding_top + 600;
+
+        // Draw the underlined text
+        canvas.drawText(underlinedText, textX, textY, paint);
+
+        // TODO: Healthy Prediction
+        float healthyPredStartY = cont_padding_top + 750;
+
+        // Configure text paint for healthy prediction
+        TextPaint healthyPredictionPaint = new TextPaint();
+        healthyPredictionPaint.setColor(ContextCompat.getColor(this, R.color.black));
+        healthyPredictionPaint.setTextSize(60); // Adjust text size as needed
+        healthyPredictionPaint.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.BOLD)); // Bold text style
+        healthyPredictionPaint.setTextAlign(Paint.Align.LEFT);
+
+        // Define the healthy prediction text
+        String healthyPredictionText = String.format(Locale.getDefault(), "Healthy --------------------- %.1f%%", responseObject.getProbabilities().get(0) * 100);
+
+        // Define the x and y coordinates for the healthy prediction text
+
+        // Draw the healthy prediction text
+        canvas.drawText(healthyPredictionText, cont_padding_left, healthyPredStartY, healthyPredictionPaint);
+
+        // Configure text paint for additional details
+        TextPaint additionalDetailsPaint = new TextPaint();
+        additionalDetailsPaint.setColor(ContextCompat.getColor(this, R.color.black));
+        additionalDetailsPaint.setTextSize(40); // Adjust text size as needed
+        additionalDetailsPaint.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.NORMAL)); // Normal text style
+        additionalDetailsPaint.setTextAlign(Paint.Align.LEFT);
+
+        // Define the additional details text with the probability variable
+        String additionalDetailsText = String.format(Locale.getDefault(),
+                "The uploaded lung sound audio clip is categorized as a healthy sound profile in %.1f%% based on our evaluation model.\n" +
+                        "This does not completely rule out the need for a medical investigation, if any.\n\n" +
+                        "Note\n" +
+                        "Even though it is identified as a healthy lung sound, if you still feel discomfort, please consult your medical practitioner for further support and diagnosis. Early diagnosis of illness will make it easier to treat and prevent adverse health complications.\n" +
+                        "Our effort in this solution is to ensure that patients get early attention from medical practitioners: so that any illness can be treated promptly through standard medical procedures.", responseObject.getProbabilities().get(0) * 100);
+        // Create a StaticLayout to handle the text layout for additional details
+        StaticLayout additionalDetailsLayout = new StaticLayout(
+                additionalDetailsText,
+                additionalDetailsPaint,
+                (int) (cont_padding_right - cont_padding_left), // Width of the area
+                Layout.Alignment.ALIGN_NORMAL,
+                1.5f, // Line spacing multiplier
+                0.0f, // Line spacing extra
+                true // Justify the paragraph
+        );
+
+        // Draw the additional details text
+        canvas.save();
+        canvas.translate(cont_padding_left, healthyPredStartY + 100); // Adjust the starting position of the text as needed
+        additionalDetailsLayout.draw(canvas);
+        canvas.restore();
+
+
+        // Comment and disclaimer -----------------------------------------------------------
+
+        // Configure text paint
+        TextPaint textPaint = new TextPaint();
+        textPaint.setColor(ContextCompat.getColor(this, R.color.black));
+        textPaint.setTextSize(50); // Adjust text size as needed
+
+        // Set justified alignment using Layout.Alignment
+        Layout.Alignment alignment = Layout.Alignment.ALIGN_NORMAL;
+        textPaint.setTextAlign(Paint.Align.LEFT);
+
+        // Paragraph text
+        String paragraphText = "COMMENT : \nThis categorization is only diagnosing 10 lung diseases including Asthma, Bronchiectasis, Bronchiolitis, Bronchitis, COPD, Lung Fibrosis, Pleural Effusion, Pneumonia, URTI any other disease containing lung audio will give incorrect results for the application. Therefore users are advised to seek professional medical care before taking any medication based on the results of this mobile application.\n\n" +
+                "This sound categorization is for indication purposes only and should not be taken as a replacement or alternative for professional medical advice.";
+
+        SpannableStringBuilder spannableText = new SpannableStringBuilder(paragraphText);
+
+        int boldStartIndex = paragraphText.indexOf("This sound categorization is for indication purposes only");
+        int boldEndIndex = paragraphText.indexOf("This sound categorization is for indication purposes only") + "This sound categorization is for indication purposes only and should not be taken as a replacement or alternative for professional medical advice.".length();
+
+
+        // Apply bold style using a StyleSpan
+        spannableText.setSpan(new StyleSpan(Typeface.BOLD), boldStartIndex, boldEndIndex, 0);
+
+
+        // Create a StaticLayout to handle the text layout
+        StaticLayout staticLayout = new StaticLayout(
+                spannableText,
+                textPaint,
+                (int) (cont_padding_right - cont_padding_left), // Width of the paragraph area (page width minus padding)
+                alignment,
+                1.5f, // Line spacing multiplier
+                0.0f, // Line spacing extra
+                true // Justify the paragraph
+        );
+
+        // Draw the paragraph within the specified area
+        canvas.save();
+        canvas.translate(cont_padding_left, cont_padding_top + 1600); // Adjust the starting position of the text as needed
+        staticLayout.draw(canvas);
+        canvas.restore();
+
+        // Tested date time -------------------------------------------------------------
+        Paint testTime = new Paint();
+        testTime.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.ITALIC)); // Normal text style
+        testTime.setTextSize(40); // Adjust text size as needed
+        testTime.setColor(ContextCompat.getColor(this, R.color.black)); // Set text color
+
+        // Define the contact details
+        String testTimeText = "Diagnosed time : " + getCurrentDateTimeShort();
+
+
+        // Define the starting X and Y coordinates for the contact details
+        float textTimeX = cont_padding_left; // Align with left padding
+        float textTimeY = height - padding - 300; // Position just above the bottom padding
+
+        canvas.drawText(testTimeText, textTimeX, textTimeY, testTime);
+
+        // Contact details ---------------------------------------------------------------
+
+        Paint contactPaint = new Paint();
+        contactPaint.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.NORMAL)); // Normal text style
+        contactPaint.setTextSize(40); // Adjust text size as needed
+        contactPaint.setColor(ContextCompat.getColor(this, R.color.black)); // Set text color
+
+        // Define the contact details
+        String contactDetails = "Contact Us: \nEmail: lungsoundclassification@gmail.com \nPhone: +94 76 781 6691";
+
+        String[] lines = contactDetails.split("\n");
+
+        // Define the starting X and Y coordinates for the contact details
+        float contactX = cont_padding_left; // Align with left padding
+        float contactY = height - padding - 200; // Position just above the bottom padding
+
+        // Draw each line of contact details separately
+        for (String line : lines) {
+            // Draw the current line of text on the canvas
+            canvas.drawText(line, contactX, contactY, contactPaint);
+
+            // Increment the Y-coordinate to move to the next line
+            contactY += contactPaint.getTextSize() * 1.5; // Adjust the line height if needed
+        }
+
+
+
+        pdfDocument.finishPage(page);
+
+        // TODO : Change this file path it is just for the emulator
+        File file = new File(getExternalFilesDir(null), "pulmosync_diagnosis_report_" + getCurrentDateTimeShort() + ".pdf");
+
+        try {
+            // after creating a file name we will
+            // write our PDF file to that location.
+            pdfDocument.writeTo(new FileOutputStream(file));
+
+            // below line is to print toast message
+            // on completion of PDF generation.
+            Toast.makeText(DiagnosisActivity.this, "PDF file generated successfully.", Toast.LENGTH_SHORT).show();
+        } catch (IOException e) {
+            // below line is used
+            // to handle error
+            e.printStackTrace();
+        }
+        // after storing our pdf to that
+        // location we are closing our PDF file.
+        pdfDocument.close();
+
+
+
     }
 
     private void createPDF(List<String> diagnosisNames, List<Float> diagnosisProbs){

@@ -5,9 +5,11 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Parcelable;
+import android.util.Base64;
 import android.util.Log;
 import android.view.View;
 import android.widget.RelativeLayout;
@@ -119,6 +121,7 @@ public class MainActivity extends AppCompatActivity {
 
 
             byte[] finalWavData = wavData;
+            saveWavDataToLocalStorage(this, finalWavData);
             // async call
             call.enqueue(new Callback<ResponseObject>() {
                 @Override
@@ -130,10 +133,16 @@ public class MainActivity extends AppCompatActivity {
 
                         ResponseObject responseObject = response.body();
 
+                        // Get the base64-encoded image string from the server response
+                        String base64Image = responseObject.getXai_base64();
+
+                        // Save the base64-encoded image string to local storage
+                        saveBase64ImageToLocalStorage(MainActivity.this, base64Image);
+                        responseObject.setXai_base64("");
+
                         Intent intent = new Intent(MainActivity.this, DiagnosisActivity.class);
 
                         intent.putExtra("response_object", responseObject);
-                        intent.putExtra("wav_data", finalWavData);
 
                         startActivity(intent);
 
@@ -147,6 +156,7 @@ public class MainActivity extends AppCompatActivity {
                 @Override
                 public void onFailure(Call<ResponseObject> call, Throwable t) {
                     hideProgressBar();
+                    Log.e("RequestFail", t.getMessage());
                     Toast.makeText(MainActivity.this, "Request Failed", Toast.LENGTH_SHORT).show();
                 }
 
@@ -155,6 +165,24 @@ public class MainActivity extends AppCompatActivity {
 
 
         }
+    }
+
+    private void saveBase64ImageToLocalStorage(Context context, String base64Image) {
+        SharedPreferences sharedPreferences = context.getSharedPreferences("myPrefs", Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putString("base64Image", base64Image);
+        editor.apply();
+    }
+
+    private void saveWavDataToLocalStorage(Context context, byte[] wavData) {
+        SharedPreferences sharedPreferences = context.getSharedPreferences("myPrefs", Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+
+        // Convert byte array to Base64 string
+        String wavDataString = Base64.encodeToString(wavData, Base64.DEFAULT);
+
+        editor.putString("wavData", wavDataString);
+        editor.apply();
     }
 
     public static boolean isFileAccessible(Uri uri, Context _context) {

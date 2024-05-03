@@ -15,4 +15,8 @@
     <string name="final_disclaimer">This sound categorization is for indication purposes only, and should not be taken as a replacement or alternative for professional medical advice.</string>
     <string name="analysis">ANALYSIS</string>
     <string name="got_it">Got It!</string>
+    <string name="unaffected_region">Unaffected region</string>
+    <string name="slightly_contributed_region">Slightly contributed region</string>
+    <string name="moderately_contributed_region">Moderately contributed region</string>
+    <string name="severely_contributed_region">Severely contributed region</string>
 </resources>

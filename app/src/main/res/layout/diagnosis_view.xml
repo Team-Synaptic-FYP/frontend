@@ -341,6 +341,117 @@
 
                         android:background="@color/grey_low_transparent" />
 
+
+                    <!-- Legend -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+
+                        android:padding="20dp"
+                        >
+
+                        <!-- Legend item: Not contributed region -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical">
+
+                            <View
+                                android:layout_width="20dp"
+                                android:layout_height="2dp"
+
+                                android:layout_marginEnd="10dp"
+                                android:background="#2559f5" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="5dp"
+                                android:text="@string/unaffected_region"
+                                android:textColor="@android:color/black" />
+                        </LinearLayout>
+
+                        <!-- Legend item: Minor contributed region -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical">
+
+                            <View
+                                android:layout_width="20dp"
+                                android:layout_height="2dp"
+
+                                android:layout_marginEnd="10dp"
+                                android:background="#f2b72c" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="5dp"
+                                android:text="@string/slightly_contributed_region"
+                                android:textColor="@android:color/black" />
+                        </LinearLayout>
+
+                        <!-- Legend item: Average contributed region -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical">
+
+                            <View
+                                android:layout_width="20dp"
+                                android:layout_height="2dp"
+                                android:layout_marginEnd="10dp"
+                                android:background="#de2626" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="5dp"
+                                android:text="@string/moderately_contributed_region"
+                                android:textColor="@android:color/black" />
+                        </LinearLayout>
+
+                        <!-- Legend item: High contributed region -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical">
+
+                            <View
+                                android:layout_width="20dp"
+                                android:layout_height="2dp"
+                                android:layout_marginEnd="10dp"
+                                android:background="#4d000d" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="5dp"
+                                android:text="@string/severely_contributed_region"
+                                android:textColor="@android:color/black" />
+                        </LinearLayout>
+                    </LinearLayout>
+
+
+
+
+                    <ImageView
+                        android:id="@+id/xai_image"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:src="@drawable/xai_dummy"
+                        android:layout_gravity="end"
+
+                        android:layout_marginStart="64dp"
+
+                        />
+
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"

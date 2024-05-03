@@ -7,38 +7,32 @@ public class ResponseObject implements Serializable {
 
     private List<String> diseases;
     private List<Float> probabilities;
-    private List<Integer> severities;
+    private String xai_base64;
 
     public ResponseObject() {
     }
 
-    public ResponseObject(List<String> diseases, List<Float> probabilities, List<Integer> severities) {
+    public ResponseObject(List<String> diseases, List<Float> probabilities, String xai_base64) {
         this.diseases = diseases;
         this.probabilities = probabilities;
-        this.severities = severities;
+        this.xai_base64 = xai_base64;
     }
 
     public List<String> getDiseases() {
         return diseases;
     }
 
-    public void setDiseases(List<String> diseases) {
-        this.diseases = diseases;
-    }
 
     public List<Float> getProbabilities() {
         return probabilities;
     }
 
-    public void setProbabilities(List<Float> predictions) {
-        this.probabilities = predictions;
+
+    public String getXai_base64() {
+        return xai_base64;
     }
 
-    public List<Integer> getSeverities() {
-        return severities;
-    }
-
-    public void setSeverities(List<Integer> severities) {
-        this.severities = severities;
+    public void setXai_base64(String xai_base64) {
+        this.xai_base64 = xai_base64;
     }
 }
