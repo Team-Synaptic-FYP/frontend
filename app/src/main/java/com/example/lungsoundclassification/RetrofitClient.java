@@ -10,7 +10,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
 public class RetrofitClient {
 
     private static Retrofit retrofit;
-    private static String BASE_URL = "http://192.168.1.15:8080/";
+    private static String BASE_URL = "https://synaptic-gcp-2-ejgpqjuhtq-as.a.run.app/";
 
     public static Retrofit getRetrofitInstance(){
         if (retrofit == null){
